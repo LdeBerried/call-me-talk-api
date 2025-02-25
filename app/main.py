@@ -2,7 +2,7 @@ import uuid
 from enum import Enum
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Path, Query
 from pydantic import Field, BaseModel
 
 APP_DESCRIPTION = """
@@ -152,7 +152,7 @@ class Book(BaseModel):
     )
 
 
-EP_DESCRIPTION = """
+GET_BOOKS_EP_DESCRIPTION = """
 ## GET /books
 
 Retrieves a list of books from the library's collection.
@@ -186,31 +186,63 @@ When a request is made to this endpoint, the server queries the database for all
 
 """
 
+GET_BOOK_EP_DESCRIPTION = """
+## GET /books/{book_id}
+
+Retrieves a single book from the library's collection.
+### Description
+This endpoint is used to fetch a single book from the library's collection. The collection is updated daily to ensure the most up-to-date information is provided. Individual books can only be retrieved by using their unique book identifier (`book_id`).
+
+### How It Works
+When a request is made to this endpoint, the server queries the database for the specific book and returns a single book object. The book object adheres to the following `Book` schema:
+
+### Schema Details
+
+- **Book ID** `book_id`: A unique identifier for each book. This is a universally unique identifier (UUID).
+- **Title** `book_title`: The title of the book.
+- **ISBN** `isbn`: The International Standard Book Number (ISBN) that uniquely identifies the book.
+- **Publishing Year** `year`: The year when the book was first published. It can be any year up to and including 2025.
+- **Format** `book_format`: The format of the book, such as softcover or hardcover.
+- **Library Code** `library_code`: A unique code assigned by the library, must end with the character '-' followed by a number.
+- **Authors** `authors`: A list of authors who contributed to the book.
+- **Check Outs** `check_outs`: A list of instances when the book was checked out, if any.
+
+### Domain Terminology
+- **Book ID** `book_id`: Unique identifier for each book. This is a universally unique identifier (UUID).
+
+"""
+
 
 @app.get(
     "/books",
     tags=["Books"],
-    summary="You have a non-markdown Request summary",
-    description=EP_DESCRIPTION,
+    summary="Retrieve books from the library's collection",
+    description=GET_BOOKS_EP_DESCRIPTION,
 )
 async def get_books() -> list[Book]:
     raw_books = [book for book in GET_BOOKS_JSON]
-
-    # Creating book from comprehension list + Book __init__
-    result = [
-        Book(
-            book_id=uuid.UUID(raw_book.get("book_id")),
-            book_title=raw_book.get("book_title"),
-            isbn=raw_book.get("isbn"),
-            year=raw_book.get("year"),
-            authors=raw_book.get("authors"),
-        )
-        for raw_book in raw_books
-    ]
-
-    # Creating book from dict spread + Book __init__
-    result = [Book(**raw_book) for raw_book in raw_books]
-
-    # Creating book from Pydantic's model_validate
     result = [Book.model_validate(raw_book) for raw_book in raw_books]
+    return result
+
+
+@app.get(
+    "/books/{book_id}",
+    tags=["Books"],
+    summary="Retrieve a specific book from the library's collection",
+    description=GET_BOOK_EP_DESCRIPTION,
+)
+async def get_book(
+    book_id: uuid.UUID = Path(
+        description="A unique identifier for a book from the library's collection",
+        title="Book ID",
+        example="Book ID in UUID Format (eg. a358bd48-0d86-4743-988b-f81e5d88e5d7)",
+    ),
+    showing_random: bool | None = Query(default=None, description="Show random book"),
+    hidden_random: bool | None = Query(
+        default=None,
+        description="Show random book. **Hidden Parameter**",
+        include_in_schema=False,
+    ),
+) -> Book:
+    result = Book.model_validate(GET_BOOKS_JSON[0])
     return result
