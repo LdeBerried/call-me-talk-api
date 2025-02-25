@@ -6,3 +6,7 @@ run:
 
 test:
 	pytest -v
+
+lint:
+	ruff check --fix
+	ruff format app tests
