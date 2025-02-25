@@ -1,4 +1,5 @@
 import uuid
+from enum import Enum
 from typing import Any
 
 from fastapi import FastAPI
@@ -103,11 +104,18 @@ app = FastAPI(
 )
 
 
+class BookFormat(Enum):
+    HARDCOVER = "hard cover"
+    SOFTCOVER = "soft cover"
+    AUDIOBOOK = "audio book"
+
+
 class Book(BaseModel):
     book_id: uuid.UUID = Field(
         examples=[uuid.uuid4()],
         description="Unique identifier of the book.",
         title="ID",
+        default_factory=uuid.uuid4,
     )
     book_title: str = Field(
         examples=["Little Women"], description="**Title** of the book.", title="Title"
@@ -122,6 +130,15 @@ class Book(BaseModel):
         description="Year of first publishing.",
         title="Publishing Year",
     )
+    book_format: BookFormat | None = Field(
+        default=BookFormat.SOFTCOVER, description="Format of the book.", title="Format"
+    )
+    library_code: str | None = Field(
+        pattern=r"-[0-9]+$",
+        default=None,
+        description="Library code. Must end with character '-' and followed by a number.",
+        title="Library code",
+    )
     authors: list[str] = Field(
         examples=["['Louise May Alcott']"],
         description="List of authors.",
@@ -135,11 +152,46 @@ class Book(BaseModel):
     )
 
 
+EP_DESCRIPTION = """
+## GET /books
+
+Retrieves a list of books from the library's collection.
+
+### Description
+
+This endpoint is used to fetch a list of books available in the library's collection. The collection is updated daily to ensure the most up-to-date information is provided to users. Books can be filtered and sorted using query parameters (such as title, authors, year, or format) to facilitate efficient searching and retrieval.
+
+### How It Works
+
+When a request is made to this endpoint, the server queries the database for all available books and returns a JSON array of book objects. Each book object adheres to the following `Book` schema:
+
+### Schema Details
+
+- **Book ID** `book_id`: A unique identifier for each book. This is a universally unique identifier (UUID).
+- **Title** `book_title`: The title of the book.
+- **ISBN** `isbn`: The International Standard Book Number (ISBN) that uniquely identifies the book.
+- **Publishing Year** `year`: The year when the book was first published. It can be any year up to and including 2025.
+- **Format** `book_format`: The format of the book, such as softcover or hardcover.
+- **Library Code** `library_code`: A unique code assigned by the library, must end with the character '-' followed by a number.
+- **Authors** `authors`: A list of authors who contributed to the book.
+- **Check Outs** `check_outs`: A list of instances when the book was checked out, if any.
+
+### Domain Terminology
+
+- **UUID**: Universally Unique Identifier. A 128-bit identifier used to uniquely identify information in computer systems.
+- **ISBN**: International Standard Book Number. A unique identifier for books, allowing for more efficient management and sale of books.
+- **Softcover**: A type of book binding that uses a flexible paper cover.
+- **Hardcover**: A type of book binding that uses a rigid protective cover.
+- **Audiobook**: Audible type of book avaliable for download.
+
+"""
+
+
 @app.get(
     "/books",
     tags=["Books"],
     summary="You have a non-markdown Request summary",
-    description="**Retrieve all books** from collection. <br/> *This description renders markdown.*",
+    description=EP_DESCRIPTION,
 )
 async def get_books() -> list[Book]:
     raw_books = [book for book in GET_BOOKS_JSON]
