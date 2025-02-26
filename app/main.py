@@ -77,9 +77,6 @@ async def custom_swagger_ui_html():
         swagger_favicon_url="https://alicebiometrics.com/favicon.ico",
     )
 
-@app.get(app.swagger_ui_oauth2_redirect_url, include_in_schema=False)
-async def swagger_ui_redirect():
-    return get_swagger_ui_oauth2_redirect_html()
 
 app.include_router(v1_books.router)
 app.include_router(v2_books.router)
