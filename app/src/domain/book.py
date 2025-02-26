@@ -4,6 +4,15 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+GET_BOOK_JSON = {
+"book_id": "a6cc9558-ae56-4533-bbde-8db27e8b00c7",
+        "book_title": "Little Women",
+        "isbn": "a6cc9558-ae56-4533-bbde-8db27e8b00c7",
+        "year": 1868,
+        "authors": ["Louise May Alcott"],
+        "check_outs": [],
+}
+
 GET_BOOKS_JSON = [
     {
         "book_id": "a6cc9558-ae56-4533-bbde-8db27e8b00c7",

@@ -1,6 +1,8 @@
 from fastapi import Path, APIRouter
+from pydantic.v1 import BaseModel
+from starlette.responses import JSONResponse
 
-from app.src.domain.book import GET_BOOKS_JSON, Book
+from app.src.domain.book import GET_BOOKS_JSON, Book, GET_BOOK_JSON
 
 GET_BOOKS_EP_DESCRIPTION = """
 ## GET /books
@@ -64,11 +66,24 @@ When a request is made to this endpoint, the server queries the database for the
 
 router = APIRouter(prefix="/v2/books", tags=["Books", "v2"])
 
+class Message(BaseModel):
+    message: str
 
 @router.get(
     "/{book_title}",
     summary="Retrieve a specific book from the library's collection",
     description=GET_BOOK_EP_DESCRIPTION,
+    response_model=Book,
+    responses={
+        200: {
+            "description": "Item requested by ID",
+            "content": {
+                "application/json": {
+                    "example": GET_BOOK_JSON
+                }
+            },
+        }
+    }
 )
 async def get_book(
     book_title: str = Path(
@@ -76,6 +91,7 @@ async def get_book(
         title="Book Title",
         examples=["Book Title in str Format (eg. Little Women)"],
     ),
-) -> Book:
-    result = Book.model_validate(GET_BOOKS_JSON[0])
+):
+    matching_books = [book for book in GET_BOOKS_JSON if book.book_title == book_title]
+    result = Book.model_validate(matching_books[0])
     return result
