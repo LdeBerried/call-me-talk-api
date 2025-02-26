@@ -4,9 +4,7 @@ from fastapi import Path, APIRouter, Body
 
 from app.src.domain.book import (
     GET_BOOKS_JSON,
-    Book,
-    GET_BOOK_JSON,
-    GET_BOOK_WITH_MULTIPLE_AUTHORS_JSON, POST_BOOK_JSON, POST_BOOK_WITH_MULTIPLE_AUTHORS_JSON,
+    Book, POST_BOOK_JSON, POST_BOOK_WITH_MULTIPLE_AUTHORS_JSON,
 )
 
 GET_BOOKS_EP_DESCRIPTION = """
