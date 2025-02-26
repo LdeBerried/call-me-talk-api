@@ -4,6 +4,21 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+POST_BOOK_JSON = {
+    "book_title": "Little Women",
+    "isbn": "a6cc9558-ae56-4533-bbde-8db27e8b00c7",
+    "year": 1868,
+    "authors": ["Louise May Alcott"],
+    "check_outs": [],
+}
+POST_BOOK_WITH_MULTIPLE_AUTHORS_JSON = {
+    "book_title": "The Long Earth",
+    "isbn": "978-0-06-206775-3",
+    "year": 2016,
+    "authors": ["Terry Pratchett", "Stephen Baxter"],
+    "check_outs": [],
+}
+
 GET_BOOK_JSON = {
 "book_id": "a6cc9558-ae56-4533-bbde-8db27e8b00c7",
         "book_title": "Little Women",
@@ -12,6 +27,16 @@ GET_BOOK_JSON = {
         "authors": ["Louise May Alcott"],
         "check_outs": [],
 }
+
+GET_BOOK_WITH_CHECKOUT_JSON = {
+    "book_id": "a6cc9558-ae56-4533-bbde-8db27e8b00c7",
+    "book_title": "Little Women",
+    "isbn": "a6cc9558-ae56-4533-bbde-8db27e8b00c7",
+    "year": 1868,
+    "authors": ["Louise May Alcott"],
+    "check_outs": [{"date": "2025-02-23", "ongoing": True, "recipient": "Jane Doe"}],
+}
+
 
 GET_BOOKS_JSON = [
     {
@@ -64,7 +89,7 @@ class BookFormat(Enum):
 
 
 class Book(BaseModel):
-    book_id: uuid.UUID = Field(
+    book_id: uuid.UUID | None = Field(
         examples=[uuid.uuid4()],
         description="Unique identifier of the book.",
         title="ID",

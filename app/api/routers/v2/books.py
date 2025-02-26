@@ -1,8 +1,13 @@
-from fastapi import Path, APIRouter
-from pydantic.v1 import BaseModel
-from starlette.responses import JSONResponse
+import uuid
 
-from app.src.domain.book import GET_BOOKS_JSON, Book, GET_BOOK_JSON
+from fastapi import Path, APIRouter, Body
+
+from app.src.domain.book import (
+    GET_BOOKS_JSON,
+    Book,
+    GET_BOOK_JSON,
+    GET_BOOK_WITH_MULTIPLE_AUTHORS_JSON, POST_BOOK_JSON, POST_BOOK_WITH_MULTIPLE_AUTHORS_JSON,
+)
 
 GET_BOOKS_EP_DESCRIPTION = """
 ## GET /books
@@ -66,24 +71,11 @@ When a request is made to this endpoint, the server queries the database for the
 
 router = APIRouter(prefix="/v2/books", tags=["Books", "v2"])
 
-class Message(BaseModel):
-    message: str
 
 @router.get(
     "/{book_title}",
     summary="Retrieve a specific book from the library's collection",
     description=GET_BOOK_EP_DESCRIPTION,
-    response_model=Book,
-    responses={
-        200: {
-            "description": "Item requested by ID",
-            "content": {
-                "application/json": {
-                    "example": GET_BOOK_JSON
-                }
-            },
-        }
-    }
 )
 async def get_book(
     book_title: str = Path(
@@ -91,7 +83,34 @@ async def get_book(
         title="Book Title",
         examples=["Book Title in str Format (eg. Little Women)"],
     ),
-):
+) -> Book:
     matching_books = [book for book in GET_BOOKS_JSON if book.book_title == book_title]
     result = Book.model_validate(matching_books[0])
     return result
+
+
+@router.post(
+    "/",
+    summary="Add a new book to the library collection",
+    description=GET_BOOK_EP_DESCRIPTION,
+)
+async def post_book(
+    book: Book = Body(
+        description="A new book for the library's collection. This Book has all attributes that created Books already "
+                    "have *except* for `BookID`, which is asigned by this API when adding it to the library "
+                    "using this endpoint.",
+        title="Book",
+        openapi_examples={
+            "Book with one author": {
+                "summary": "Book with one author",
+                "value": POST_BOOK_JSON,
+            },
+            "Book with two authors": {
+                "summary": "Book with two authors",
+                "value": POST_BOOK_WITH_MULTIPLE_AUTHORS_JSON,
+            },
+        },
+    ),
+) -> uuid.UUID:
+    book.book_id = uuid.uuid4()
+    return book.book_id

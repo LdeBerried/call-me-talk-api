@@ -1,7 +1,10 @@
 import os
 
 from fastapi import FastAPI
-from fastapi.openapi.docs import get_swagger_ui_html, get_swagger_ui_oauth2_redirect_html
+from fastapi.openapi.docs import (
+    get_swagger_ui_html,
+    get_swagger_ui_oauth2_redirect_html,
+)
 from starlette.staticfiles import StaticFiles
 
 from .api.routers.v1 import books as v1_books
@@ -50,7 +53,7 @@ OPENAPI_TAGS = [
 app = FastAPI(
     title="MyLibrary",
     description=APP_DESCRIPTION,
-    summary="MyLibrary API for learning purposes", # No MD
+    summary="MyLibrary API for learning purposes",  # No MD
     version="0.1.0",
     contact={
         "name": "Your name",
@@ -62,11 +65,12 @@ app = FastAPI(
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
     },
     openapi_tags=OPENAPI_TAGS,
-    docs_url=None
+    docs_url=None,
 )
 
 ROOT_PATH = os.path.abspath(os.path.dirname(__file__))
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui_html():
@@ -77,9 +81,11 @@ async def custom_swagger_ui_html():
         swagger_favicon_url="https://alicebiometrics.com/favicon.ico",
     )
 
+
 @app.get(app.swagger_ui_oauth2_redirect_url, include_in_schema=False)
 async def swagger_ui_redirect():
     return get_swagger_ui_oauth2_redirect_html()
+
 
 app.include_router(v1_books.router)
 app.include_router(v2_books.router)
